@@ -4,6 +4,8 @@ let bodyParser = require('body-parser');
 let cors = require('cors');
 let { Timestamp } = require('../shared/timestamp');
 let merkle = require('../shared/merkle');
+let initSql = require('./initdb.js');
+let path = require('path');
 
 let db = sqlite3(__dirname + '/db.sqlite');
 let app = express();
@@ -11,6 +13,18 @@ app.use(cors());
 app.use(bodyParser.json({ limit: '20mb' }));
 app.use('/', express.static(path.resolve('./client')))
 app.use('/shared', express.static(path.resolve('./shared')))
+
+function queryAll(sql, params = []) {
+  let stmt = db.prepare(sql);
+  return stmt.all(...params);
+}
+
+function queryRun(sql, params = []) {
+  let stmt = db.prepare(sql);
+  return stmt.run(...params);
+}
+
+initSql(path.resolve('./server/init.sql'), queryRun);
 
 function queryAll(sql, params = []) {
   let stmt = db.prepare(sql);
